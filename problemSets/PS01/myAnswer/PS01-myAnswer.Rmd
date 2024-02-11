@@ -60,7 +60,7 @@ ks_test_normal <- function(data) {
   p.value <- sqrt(2 * pi) / D * 
             sum(sapply(1:10000, function(k) exp(-((2 * k - 1)^2) * pi^2 / (8 * D^2))))
   ks_builtin <- ks.test(data, "pnorm", 0, 1) 
-  list(D = D, p_value = p.value, builtins=ks_builtin) # includes the builtin function ks.test
+  list(D = D, p_value = p.value, builtins=ks_builtin) # includes the builtin func
 }
 
 set.seed(123)
@@ -96,6 +96,9 @@ lm_results <- lm(y ~ x, data = data)
 print(bfgs_estimates)
 print(summary(lm_results)$coefficients)
 
-paste0("While thie init is:", "(", init_params[1], init_params[2], "),", " the difference between LS and BFGS in intercept: ", bfgs_estimates[1] - summary(lm_results)$coefficients[1, 1])
-paste0("While thie init is:", "(", init_params[1], init_params[2], "),", " the difference between LS and BFGS in slope: ", bfgs_estimates[2] - summary(lm_results)$coefficients[2, 1])
+paste0("thie init point is: ", "(", init_params[1], ", ", init_params[2], ")")
+paste0("the diff of LS and BFGS in intercept: ", bfgs_estimates[1] 
+          - summary(lm_results)$coefficients[1, 1])
+paste0("the diff of LS and BFGS in slope: ", bfgs_estimates[2] 
+          - summary(lm_results)$coefficients[2, 1])
 ```
