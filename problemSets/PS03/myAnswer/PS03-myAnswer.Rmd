@@ -1,0 +1,128 @@
+---
+title: "Problem Set 3 - My Answer"
+author: 
+  - Junjie LIU:
+      email: liuj13@tcd.ie
+      institute: [TCD-polisci]
+      correspondence: true
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+institute:
+  - TCD-polisci: Department of Political Science, Trinity College Dublin, 2 Clare, Street, Dublin 2, Ireland
+toc: false
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: dependency.sty
+    pandoc_args:
+      - --lua-filter=../../../environment/scholarly-metadata.lua
+      - --lua-filter=../../../environment/author-info-blocks.lua
+---
+
+\section*{Instructions}
+\begin{itemize}
+	\item Please show your work! You may lose points by simply writing in the answer. If the problem requires you to execute commands in \texttt{R}, please include the code you used to get your answers. Please also include the \texttt{.R} file that contains your code. If you are not sure if work needs to be shown for a particular problem, please ask.
+	\item Your homework should be mitted electronically on GitHub in \texttt{.pdf} form.
+	\item This problem set is due before 23:59 on Sunday March 24, 2024. No late assignments will be accepted.
+\end{itemize}
+
+	
+\section*{Question 1}
+\vspace{.25cm}
+\noindent We are interested in how governments' management of public resources impacts economic prosperity. Our data come from \href{https://www.researchgate.net/profile/Adam_Przeworski/publication/240357392_Classifying_Political_Regimes/links/0deec532194849aefa000000/Classifying-Political-Regimes.pdf}{Alvarez, Cheibub, Limongi, and Przeworski (1996)} and is labelled \texttt{gdpChange.csv} on GitHub. The dataset covers 135 countries observed between 1950 or the year of independence or the first year forwhich data on economic growth are available ("entry year"), and 1990 or the last year for which data on economic growth are available ("exit year"). The unit of analysis is a particular country during a particular year, for a total $>$ 3,500 observations. 
+
+\begin{itemize}
+	\item
+	Response variable: 
+	\begin{itemize}
+		\item \texttt{GDPWdiff}: Difference in GDP between year $t$ and $t-1$. Possible categories include: "positive", "negative", or "no change"
+	\end{itemize}
+	\item
+	Explanatory variables: 
+	\begin{itemize}
+		\item
+		\texttt{REG}: 1=Democracy; 0=Non-Democracy
+		\item
+		\texttt{OIL}: 1=if the average ratio of fuel exports to total exports in 1984-86 exceeded 50\%; 0= otherwise
+	\end{itemize}
+	
+\end{itemize}
+\newpage
+\noindent Please answer the following questions:
+
+\begin{enumerate}
+	\item Construct and interpret an unordered multinomial logit with \texttt{GDPWdiff} as the output and "no change" as the reference category, including the estimated cutoff points and coefficients.
+	\item Construct and interpret an ordered multinomial logit with \texttt{GDPWdiff} as the outcome variable, including the estimated cutoff points and coefficients.
+\end{enumerate}
+
+```{R}
+# Question 1 
+library(nnet)
+library(MASS)
+library(dplyr)
+
+gdpChange <- read.csv("../../../datasets/gdpChange.csv")
+
+gdpChange$GDPWdiff <- ifelse(gdpChange$GDPWdiff < 0, "negative", 
+                    ifelse(gdpChange$GDPWdiff == 0, "no_change", "positive"))
+gdpChange <- gdpChange %>% mutate(OIL=as.factor(OIL), REG=as.factor(REG), 
+                  COUNTRY=as.factor(COUNTRY), GDPWdiff=as.factor(GDPWdiff))
+gdpChange$GDPWdiff <- relevel(gdpChange$GDPWdiff, ref="no_change")
+
+model_1 <- multinom(GDPWdiff ~ REG + OIL, data=gdpChange)
+summary(model_1)
+
+model_2 <- polr(GDPWdiff ~ REG + OIL, data=gdpChange)
+summary(model_2)
+```
+
+\textcolor{blue}{Based on the model 1, we can find that
+\begin{enumerate}
+  \item For the negative, the log-odds is denoted by: $y = 3.81 + 1.38 \times \text{REG1} + 4.78 \times \text{OIL1}$
+  \item For the positive, the log-odds is denoted by: $y = 4.53 + 1.77 \times \text{REG1} + 4.58 \times \text{OIL1}$
+\end{enumerate}}
+
+\textcolor{blue}{For the ordered model, we can find that
+\begin{enumerate}
+  \item The "no change|negative" at $-5.32$ with a t-value of $-21.09$ would be the threshold between "no change" and "negative" categories
+  \item The "negative|positive" at $-0.70$ with a t-value of $-14.79$ is the threshold between "negative" and "positive" categories
+\end{enumerate}}
+
+
+\section*{Question 2} 
+\vspace{.25cm}
+
+\noindent Consider the data set \texttt{MexicoMuniData.csv}, which includes municipal-level information from Mexico. The outcome of interest is the number of times the winning PAN presidential candidate in 2006 (\texttt{PAN.visits.06}) visited a district leading up to the 2009 federal elections, which is a count. Our main predictor of interest is whether the district was highly contested, or whether it was not (the PAN or their opponents have electoral security) in the previous federal elections during 2000 (\texttt{competitive.district}), which is binary (1=close/swing district, 0="safe seat"). We also include \texttt{marginality.06} (a measure of poverty) and \texttt{PAN.governor.06} (a dummy for whether the state has a PAN-affiliated governor) as additional control variables. 
+
+\begin{enumerate}
+	\item [(a)]
+	Run a Poisson regression because the outcome is a count variable. Is there evidence that PAN presidential candidates visit swing districts more? Provide a test statistic and p-value.
+
+	\item [(b)]
+	Interpret the \texttt{marginality.06} and \texttt{PAN.governor.06} coefficients.
+	
+	\item [(c)]
+	Provide the estimated mean number of visits from the winning PAN presidential candidate for a hypothetical district that was competitive (\texttt{competitive.district}=1), had an average poverty level (\texttt{marginality.06} = 0), and a PAN governor (\texttt{PAN.governor.06}=1).
+\end{enumerate}
+
+```{R}
+mexico <- read.csv("../../../datasets/MexicoMuniData.csv")
+mexico <- mexico %>% mutate(PAN.governor.06=as.factor(PAN.governor.06), 
+                            competitive.district=as.factor(competitive.district))
+
+model_3 <- glm(PAN.visits.06 ~ PAN.governor.06 + competitive.district + marginality.06, 
+               data = mexico, family = poisson(link = "log"))
+summary(model_3)
+
+coeff <- coefficients(model_3)
+output <- exp(sum(coeff * c(1, 1, 1, 0)))
+print(paste("The estimated mean number of visits is", output))
+```
+
+\textcolor{blue}{Based on the model 3, we can find that 
+\begin{enumerate}
+  \item The t-value and p-value for "competitive district 1" is $-0.48$ and $0.63$, where the the p-value is much greater than $0.05$. There is not statistically significant
+  \item The coefficient for "marginality 06" is $-2.08$, which is statistically significant. This negative coefficient indicates that as marginality increases by one unit, the log count of visits from the PAN presidential candidates is expected to decrease by $2.08$
+  \item The coefficient for "PAN governor 06" is $-0.31$ with a p-value of $0.6317$, which is not significant
+  \item The estimated mean number of visits is $0.015$
+\end{enumerate}}
+
