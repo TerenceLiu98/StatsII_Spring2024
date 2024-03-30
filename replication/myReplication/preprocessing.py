@@ -207,21 +207,30 @@ filt_df.to_csv(f'{DATA_DIR}valid_id_subr_gt1.csv.bz2',index=False)
 df = pd.read_csv(f'{DATA_DIR}valid_id_subr_gt1.csv.bz2')
 subreddit_counts = df.subreddit.value_counts()
 
+
+## sentiment sore and ideology score
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+analyzer = SentimentIntensityAnalyzer()
+senti = []
+for i in tqdm(range(0, len(df))):
+    vs = analyzer.polarity_scores(df["title"][i])
+    senti.append(vs["compound"])
+
+df["senti"] = senti
+
 # Threshold subreddits and videos based on how often they show up
 prev_len = 0
-df_score = df[['subreddit','video_id', 'score']].dropna()
+df_score = df[['subreddit','video_id', 'score', "senti"]].dropna()
 
 while prev_len != len(df_score):
-    
     prev_len = len(df_score)
     df_score = df_score.groupby('subreddit').filter(lambda x: x['video_id'].nunique() >= 5)
     df_score = df_score.groupby('video_id').filter(lambda x: x['subreddit'].nunique() >= 3)
-    
     print(prev_len, len(df_score))
 
-# Optional: output a counts crosstab. We can use this if we want to compare results from the counts crosstab vs the score crosstab
+# output a counts crosstab. We can use this if we want to compare results from the counts crosstab vs the score crosstab
 counts_xtab = pd.crosstab(df_score['video_id'], df_score['subreddit'])
-counts_xtab.to_csv(os.path.join(DATA_DIR,'counts_subr_vid_crosst.csv'))
+counts_xtab.to_csv('counts_subr_vid_crosst.csv')
 
 # Create the score-based crosstab. Each cell entry is log(summed_scores+1)
 xtab = pd.crosstab(df_score['video_id'], df_score['subreddit'], values=df_score['score'], aggfunc=np.sum)
@@ -229,7 +238,5 @@ xtab.fillna(0, inplace=True)
 logged_xtab = np.log(xtab+1)
 
 # Output the crosstab
-logged_xtab.to_csv(os.path.join(DATA_DIR,'score_subr_vid_crosst.csv'))
-print('CREATING SUBREDDIT MATRIX EXECUTION TIME:')
-end = time.time()
-print(end - start)
+logged_xtab.to_csv('score_subr_vid_crosst.csv')
+

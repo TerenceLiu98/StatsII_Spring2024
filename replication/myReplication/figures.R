@@ -53,6 +53,24 @@ dat %>%
 dev.off()
 
 
+dat <- read.csv("subreddit.csv")
+dat %>%
+  mutate(vc2 = vid_count) %>%
+  ggplot(aes(x = senti,y = reorder(subreddit,senti),color = senti,label = subreddit,size = vid_count)) + 
+  geom_point(aes(size = vc2)) + 
+  scale_color_gradient2(low = 'darkblue',mid = 'grey70',high = 'darkred') + 
+  geom_text_repel(data = dat %>% filter(subreddit %in% keeps,senti < 0),hjust = 0,nudge_x = .25,size = 4) + 
+  geom_text_repel(data = dat %>% filter(subreddit %in% keeps,senti > 0),hjust = 1.2,nudge_x = -.25,size = 4) + 
+  theme_bw(base_size=16) + 
+  scale_y_discrete(expand = c(.05,.05)) + 
+  scale_size_continuous(range = c(.1,10)) + 
+  theme(axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = 'none') + xlab('Sentiment Score \n Liberal \u2192 Conservative') + ylab('Subreddits') +
+  xlim(-2,2)
+dev.off()
+
 
 ### FIGURE 3
 # 3A
