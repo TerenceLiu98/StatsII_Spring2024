@@ -1,40 +1,19 @@
-library(tidyverse)
-library(ggridges)
-library(ggrepel)
-library(dplyr)
+library("FactoMineR")
+library("ggplot2")
+library("gridExtra")
+library("tidyverse")
+library("ggridges")
+library("ggrepel")
+library("dplyr")
 
-start = Sys.time()
 ### FIGURE 2
-# Author: Jim Bisbee
-dat <- read_csv('/home/jovyan/data/youtube/subreddit_ca.csv')
+dat <- read_csv('data/processed/2012/subreddit_ca.csv')
 
-keeps <- c('white_pride',
-           'collegerepublicans',
-           'counteveryvote',
-           'esist',
-           'republican',
-           'libertarian',
-           'concealedcarry',
-           'classical_liberals',
-           'the_donald',
-           'wayofthebern',
-           'conservative',
-           'neutralnews',
-           'rooseveltrepublicans',
-           'freepoldiscussion',
-           'yanggang',
-           'democrat','progressive',
-           'thenewright',
-           'conservative',
-           'liberal',
-           'news',
-           'worldnews',
-           'politicalhumor',
-           'dsa',
-           'wayofthebern',
-           'murderedbyaoc')
+keeps <- c('news', 'anythinggoesnews', 'worldnews', 'politics', 'worldpolitics',
+            'libertarian', 'democrats', 'republican', 'conservative', 
+            'progressive', 'anarchism', 'socialism', 'communism', 'conspiracy')
 
-cairo_pdf('../figures/f2_subreddits.pdf',width = 7,height = 8)
+cairo_pdf('figs/f2_subreddits_2012.pdf',width = 7,height = 8)
 dat %>%
   mutate(vc2 = vid_count) %>%
   ggplot(aes(x = ca_score,y = reorder(subreddit,ca_score),color = ca_score,label = subreddit,size = vid_count)) + 
@@ -52,22 +31,27 @@ dat %>%
   xlim(-2,2)
 dev.off()
 
+dat <- read_csv('data/processed/2020/subreddit_ca.csv')
 
-dat <- read.csv("subreddit.csv")
+keeps <- c('news', 'anythinggoesnews', 'worldnews', 'politics', 'worldpolitics',
+            'libertarian', 'democrats', 'republican', 'conservative', 
+            'progressive', 'anarchism', 'socialism', 'communism', 'conspiracy')
+
+cairo_pdf('figs/f2_subreddits_2020.pdf',width = 7,height = 8)
 dat %>%
   mutate(vc2 = vid_count) %>%
-  ggplot(aes(x = senti,y = reorder(subreddit,senti),color = senti,label = subreddit,size = vid_count)) + 
+  ggplot(aes(x = ca_score,y = reorder(subreddit,ca_score),color = ca_score,label = subreddit,size = vid_count)) + 
   geom_point(aes(size = vc2)) + 
   scale_color_gradient2(low = 'darkblue',mid = 'grey70',high = 'darkred') + 
-  geom_text_repel(data = dat %>% filter(subreddit %in% keeps,senti < 0),hjust = 0,nudge_x = .25,size = 4) + 
-  geom_text_repel(data = dat %>% filter(subreddit %in% keeps,senti > 0),hjust = 1.2,nudge_x = -.25,size = 4) + 
+  geom_text_repel(data = dat %>% filter(subreddit %in% keeps,ca_score < 0),hjust = 0,nudge_x = .25,size = 4) + 
+  geom_text_repel(data = dat %>% filter(subreddit %in% keeps,ca_score > 0),hjust = 1.2,nudge_x = -.25,size = 4) + 
   theme_bw(base_size=16) + 
   scale_y_discrete(expand = c(.05,.05)) + 
   scale_size_continuous(range = c(.1,10)) + 
   theme(axis.text.y = element_blank(),
         axis.ticks = element_blank(),
         panel.grid.major.y = element_blank(),
-        legend.position = 'none') + xlab('Sentiment Score \n Liberal \u2192 Conservative') + ylab('Subreddits') +
+        legend.position = 'none') + xlab('Ideology Score \n Liberal \u2192 Conservative') + ylab('Subreddits') +
   xlim(-2,2)
 dev.off()
 
@@ -196,7 +180,7 @@ print(by_party %>%
 
 # Create violin plots with overlaid box plots for each political party and save to PDF
 mycolors <- c('darkblue','plum4','darkred')  
-cairo_pdf('../figures/f6a_ng_pid_vids.pdf',width=7,height=4)
+cairo_pdf('figs/f6a_ng_pid_vids.pdf',width=7,height=4)
 ggplot(by_party, aes(x = collapsed_pid7, y = bert_score, fill = collapsed_pid7)) +
   geom_violin(alpha=0.66) +
   geom_boxplot(width=0.1, fill='white', outlier.shape=NA) +
