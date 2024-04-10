@@ -1,0 +1,47 @@
+---
+title: "Problem Set 3 - My Answer"
+author: 
+  - Junjie LIU:
+      email: liuj13@tcd.ie
+      institute: [TCD-polisci]
+      correspondence: true
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+institute:
+  - TCD-polisci: Department of Political Science, Trinity College Dublin, 2 Clare, Street, Dublin 2, Ireland
+toc: false
+output:
+  bookdown::pdf_document2:
+    includes:
+      in_header: dependency.sty
+    pandoc_args:
+      - --lua-filter=../../../environment/scholarly-metadata.lua
+      - --lua-filter=../../../environment/author-info-blocks.lua
+---
+
+\section*{Instructions}
+\begin{itemize}
+	\item Please show your work! You may lose points by simply writing in the answer. If the problem requires you to execute commands in \texttt{R}, please include the code you used to get your answers. Please also include the \texttt{.R} file that contains your code. If you are not sure if work needs to be shown for a particular problem, please ask.
+	\item Your homework should be submitted electronically on GitHub in \texttt{.pdf} form.
+	\item This problem set is due before 23:59 on Friday April 12, 2024. No late assignments will be accepted.
+\end{itemize}
+
+	
+\section*{Question 1}
+\vspace{.25cm}
+\noindent We're interested in modeling the historical causes of child mortality. We have data from 26855 children born in Skellefteå, Sweden from 1850 to 1884. Using the "child" dataset in the \texttt{eha} library, fit a Cox Proportional Hazard model using mother's age and infant's gender as covariates. Present and interpret the output.
+
+
+\section*{\textcolor{blue}{My Answer}}
+
+```{R}
+library(eha)
+data <- eha::child
+cox_model <- coxreg(Surv(exit, event)~m.age+sex, data=data, coxph=TRUE)
+summary(cox_model)
+```
+\textcolor{blue}{
+The model's result suggests that both the mother's age at childbirth and the infant's gender are significant predictors of child mortality in this historical context. Specifically:
+\begin{enumerate}
+	\item A slight but statistically significant increase in the risk of child mortality is associated with older maternal age at the time of birth.
+	\item Female children have a significantly lower risk of mortality compared to male children in this population.
+\end{enumerate}}
